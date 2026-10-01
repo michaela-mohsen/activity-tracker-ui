@@ -16,11 +16,13 @@
     "@mui/lab": "^9.0.0-beta.9",
     "@mui/material": "^9.2.0",
     "@mui/material-nextjs": "^9.4.0",
+    "@tanstack/react-query": "^5.104.0",
     "axios": "^1.18.1",
     "next": "16.2.11",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-query": "^3.39.3"
+    "react-query": "^3.39.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/node": "^20",

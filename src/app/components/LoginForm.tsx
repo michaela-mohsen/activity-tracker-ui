@@ -7,15 +7,13 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Box from "@mui/material/Box";
-import {
-    Alert,
-    Button,
-    FormControl,
-    Input,
-    InputLabel,
-    Stack,
-    Typography,
-} from "@mui/material";
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import FormControl from "@mui/material/FormControl";
+import Input from "@mui/material/Input";
+import InputLabel from "@mui/material/InputLabel";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import AuthService from "../service/AuthService";
 import { useAuthStore } from "../stores/UserStore";
 

@@ -24,8 +24,8 @@ export default function NavTabs() {
     }
 
     return (
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Tabs value={selected >= 0 ? selected : false}>
+        <Box sx={{ display: "grid" }}>
+            <Tabs value={selected >= 0 ? selected : false} orientation="vertical">
                 {tabs.map((tab) => (
                     <Tab key={tab.href} component={Link} href={tab.href} label={tab.label} />
                 ))}

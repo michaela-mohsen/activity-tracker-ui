@@ -9,6 +9,7 @@ const getToken = (): string | null => {
 };
 
 const updateToken = (token: string) => {
+	console.log("token refreshed successfully");
 	useAuthStore.getState().setToken(token);
 };
 

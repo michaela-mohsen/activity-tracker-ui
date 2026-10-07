@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
 import AuthHydration from "./providers/AuthHydration";
+import AuthKeepAlive from "./providers/AuthKeepAlive";
 
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body>
         <AppRouterCacheProvider>
           <AuthHydration />
+          <AuthKeepAlive />
           {children}
         </AppRouterCacheProvider>
       </body>

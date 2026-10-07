@@ -41,10 +41,10 @@ instance.interceptors.response.use(
 		if (isAuthRequest || error.response?.status !== 401) {
 			return Promise.reject(error);
 		}
-
+		console.log("token expired, refreshing token");
 		originalConfig._retry = true;
 		try {
-			await refreshTokens();
+			await refreshAuthToken();
 			return instance(originalConfig);
 		} catch (refreshError) {
 			useAuthStore.getState().clearAuth();
@@ -55,10 +55,10 @@ instance.interceptors.response.use(
 
 let refreshPromise: Promise<void> | null = null;
 
-const refreshTokens = () => {
+export const refreshAuthToken = () => {
 	if (!refreshPromise) {
 		const refreshToken = TokenService.getRefreshToken();
-
+		console.log("refreshing token");
 		refreshPromise = instance
 			.post<{ refreshToken: string; accessToken: string }>(
 				`/v1/auth/refresh-token`,

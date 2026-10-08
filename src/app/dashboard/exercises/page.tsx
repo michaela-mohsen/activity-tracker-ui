@@ -11,31 +11,38 @@ import moment from "moment";
 
 export default function Page() {
     const [exercises, setExercises] = useState<Array<Exercise>>([]);
-    const [pageSize, setPageSize] = useState<number>(10);
-    const [currentPage, setCurrentPage] = useState<number>(0);
+    const [totalItems, setTotalItems] = useState<number>(0);
     const user = useAuthStore((state) => state.user);
     const hydrated = useAuthStore((state) => state.hydrated);
     const userId = user?.id ?? '';
-    const requestedUserId = useRef<string | null>(null);
+    const requestedUserId = useRef<string>('');
+    const [paginationModel, setPaginationModel] = useState({
+        pageSize: 10,
+        page: 0,
+    });
+
+    const changePage = (userId: string, currentPage: number, pageSize: number) => {
+        ExerciseService.get(userId, currentPage, pageSize).then((response) => {
+            const data = response.data;
+            setExercises(data.exercises);
+            setTotalItems(response.data.totalElements);
+        }).catch(() => {
+            userId = '';
+        });
+    }
 
     useEffect(() => {
         if (!hydrated || !userId || requestedUserId.current === userId) {
             return;
         }
-        ExerciseService.get(userId, currentPage, pageSize).then((response) => {
-            const data = response.data;
-            setExercises(data.exercises);
-        }).catch(() => {
-            requestedUserId.current = null;
-        });
-    }, [currentPage, hydrated, pageSize, userId]);
+        changePage(userId, paginationModel.page, paginationModel.pageSize);
+    }, [paginationModel.page, hydrated, paginationModel.pageSize, userId]);
 
     const formatDuration = (durationInMillis: number): string => {
         let secondsString = '';
         let minutesString = '';
         let hoursString = '';
         if (durationInMillis == null) {
-            console.log("duration is null, cannot format")
             return '';
         }
         const totalSeconds = Math.floor(durationInMillis / 1000);
@@ -81,15 +88,17 @@ export default function Page() {
     ]
 
     return (
-        <div>
-            <Paper>
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    autoHeight
-                    pageSizeOptions={[10]}
-                />
-            </Paper>
-        </div>
+        <Paper sx={{ display: 'flex', flexDirection: 'column' }}>
+            <DataGrid
+                rows={rows}
+                rowCount={totalItems}
+                columns={columns}
+                paginationMode="server"
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
+                autoHeight
+                pageSizeOptions={[10, 25, 50]}
+            />
+        </Paper>
     )
 }

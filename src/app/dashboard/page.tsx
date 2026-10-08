@@ -2,7 +2,7 @@
 
 import { useAuthStore } from "../stores/UserStore";
 
-export default function Dashboard() {
+export default function Page() {
     const user = useAuthStore((state) => state.user);
     const hydrated = useAuthStore((state) => state.hydrated);
 

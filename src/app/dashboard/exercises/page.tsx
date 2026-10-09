@@ -7,6 +7,7 @@ import Paper from "@mui/material/Paper";
 import { useState, useRef, useEffect } from "react";
 import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
 import moment from "moment";
+import { GridSortModel } from "@mui/x-data-grid";
 
 
 export default function Page() {
@@ -20,9 +21,10 @@ export default function Page() {
         pageSize: 10,
         page: 0,
     });
+    const [sortModel, setSortModel] = useState<GridSortModel>([{ field: "exerciseStartDate", sort: 'desc' }]);
 
-    const changePage = (userId: string, currentPage: number, pageSize: number) => {
-        ExerciseService.get(userId, currentPage, pageSize).then((response) => {
+    const getExercises = (userId: string, currentPage: number, pageSize: number, sortProperty: string, direction: string) => {
+        ExerciseService.get(userId, currentPage, pageSize, sortProperty, direction).then((response) => {
             const data = response.data;
             setExercises(data.exercises);
             setTotalItems(response.data.totalElements);
@@ -32,11 +34,11 @@ export default function Page() {
     }
 
     useEffect(() => {
-        if (!hydrated || !userId || requestedUserId.current === userId) {
+        if (!hydrated || !userId || requestedUserId.current === userId || !sortModel[0]?.sort) {
             return;
         }
-        changePage(userId, paginationModel.page, paginationModel.pageSize);
-    }, [paginationModel.page, hydrated, paginationModel.pageSize, userId]);
+        getExercises(userId, paginationModel.page, paginationModel.pageSize, sortModel[0].field, sortModel[0].sort);
+    }, [paginationModel.page, hydrated, paginationModel.pageSize, userId, sortModel]);
 
     const formatDuration = (durationInMillis: number): string => {
         let secondsString = '';
@@ -77,14 +79,14 @@ export default function Page() {
             id: exercise.id,
             activity: exercise.activity,
             duration: exercise.duration,
-            startDate: convertToJavaScriptDate(exercise.exerciseStartDate)
+            exerciseStartDate: convertToJavaScriptDate(exercise.exerciseStartDate)
         }
     });
 
     const columns: GridColDef[] = [
         { field: 'activity', headerName: 'Activity' },
-        { field: 'duration', headerName: 'Duration', type: "number", valueFormatter: (value: number) => { return formatDuration(value) } },
-        { field: 'startDate', headerName: 'Date Logged', type: "dateTime", valueFormatter: (value: string) => { return formatDate(value) } }
+        { field: 'duration', headerName: 'Duration', filterable: false, type: "number", valueFormatter: (value: number) => { return formatDuration(value) } },
+        { field: 'exerciseStartDate', headerName: 'Date Logged', filterable: false, type: "dateTime", valueFormatter: (value: string) => { return formatDate(value) } }
     ]
 
     return (
@@ -96,6 +98,9 @@ export default function Page() {
                 paginationMode="server"
                 paginationModel={paginationModel}
                 onPaginationModelChange={setPaginationModel}
+                sortingMode="server"
+                sortModel={sortModel}
+                onSortModelChange={(sortModel) => setSortModel(sortModel)}
                 autoHeight
                 pageSizeOptions={[10, 25, 50]}
             />

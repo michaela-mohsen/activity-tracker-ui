@@ -8,11 +8,18 @@ const get = (
 	size: number,
 	sortProperty: string,
 	direction: string,
+	filterOptions: { field: string; value: string },
 ) => {
-	return httpCommon.get<IExerciseData>(
-		`/v1/exercises/${userId}?page=${page}&size=${size}&sortProperty=${sortProperty}&direction=${direction}`,
-		{ headers: authHeader() },
-	);
+	let url = `/v1/exercises/${userId}?page=${page}&size=${size}&sortProperty=${sortProperty}&direction=${direction}`;
+	if (filterOptions) {
+		url = `/v1/exercises/${userId}?
+		page=${page}
+		&size=${size}
+		&sortProperty=${sortProperty}
+		&direction=${direction}
+		&${filterOptions.field}=${filterOptions.value}`;
+	}
+	return httpCommon.get<IExerciseData>(url, { headers: authHeader() });
 };
 
 const ExerciseService = { get };

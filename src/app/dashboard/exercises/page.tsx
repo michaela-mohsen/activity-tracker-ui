@@ -5,7 +5,7 @@ import { useAuthStore } from "@/app/stores/UserStore";
 import { Exercise } from "@/app/types/Exercise";
 import Paper from "@mui/material/Paper";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { DataGrid, GridColDef, GridFilterModel, GridRowsProp } from '@mui/x-data-grid';
+import { DataGrid, getGridDateOperators, getGridStringOperators, GridColDef, GridFilterModel, GridRowsProp } from '@mui/x-data-grid';
 import moment from "moment";
 import { GridSortModel } from "@mui/x-data-grid";
 
@@ -26,7 +26,13 @@ export default function Page() {
 
     const onFilterChange = useCallback((filterModel: GridFilterModel) => {
         const filterItem = filterModel?.items?.[0];
-        setFilterOptions({ field: filterItem?.field, value: filterItem?.value });
+        let filterValue = filterItem?.value;
+        let fieldValue = filterItem?.field;
+        if (filterItem?.field === "exerciseStartDate") {
+            filterValue = moment(filterValue).format();
+            fieldValue = filterItem.operator === "onOrAfter" ? "dateFrom" : "dateTo";
+        }
+        setFilterOptions({ field: fieldValue, value: filterValue });
     }, []);
 
 
@@ -91,9 +97,25 @@ export default function Page() {
     });
 
     const columns: GridColDef[] = [
-        { field: 'activity', headerName: 'Activity' },
-        { field: 'duration', headerName: 'Duration', filterable: false, type: "number", valueFormatter: (value: number) => { return formatDuration(value) } },
-        { field: 'exerciseStartDate', headerName: 'Date Logged', filterable: false, type: "dateTime", valueFormatter: (value: string) => { return formatDate(value) } }
+        {
+            field: 'activity',
+            headerName: 'Activity',
+            filterOperators: getGridStringOperators().filter((operator) => operator.value === 'contains' || operator.value === 'equals')
+        },
+        {
+            field: 'duration',
+            headerName: 'Duration',
+            filterable: false,
+            type: "number",
+            valueFormatter: (value: number) => { return formatDuration(value) }
+        },
+        {
+            field: 'exerciseStartDate',
+            headerName: 'Date Logged',
+            type: "dateTime",
+            valueFormatter: (value: string) => { return formatDate(value) },
+            filterOperators: getGridDateOperators().filter((operator) => operator.value === 'onOrAfter' || operator.value === 'onOrBefore')
+        }
     ]
 
     return (

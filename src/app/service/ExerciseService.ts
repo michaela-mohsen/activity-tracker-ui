@@ -10,16 +10,11 @@ const get = (
 	direction: string,
 	filterOptions: { field: string; value: string },
 ) => {
-	let url = `/v1/exercises/${userId}?page=${page}&size=${size}&sortProperty=${sortProperty}&direction=${direction}`;
-	if (filterOptions) {
-		url = `/v1/exercises/${userId}?
-		page=${page}
-		&size=${size}
-		&sortProperty=${sortProperty}
-		&direction=${direction}
-		&${filterOptions.field}=${filterOptions.value}`;
+	let searchUrl = `/v1/exercises/${userId}?page=${page}&size=${size}&sortProperty=${sortProperty}&direction=${direction}`;
+	if (filterOptions?.value) {
+		searchUrl = `${searchUrl}&${filterOptions.field}=${filterOptions.value}`;
 	}
-	return httpCommon.get<IExerciseData>(url, { headers: authHeader() });
+	return httpCommon.get<IExerciseData>(searchUrl, { headers: authHeader() });
 };
 
 const ExerciseService = { get };

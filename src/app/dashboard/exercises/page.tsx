@@ -117,7 +117,7 @@ export default function Page() {
             type: "dateTime",
             valueFormatter: (value: string) => { return formatDate(value) },
             filterOperators: getGridDateOperators().filter((operator) => operator.value === 'onOrAfter' || operator.value === 'onOrBefore'),
-            minWidth: 250
+            flex: 1
         }
     ]
 

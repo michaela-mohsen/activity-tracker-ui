@@ -100,21 +100,24 @@ export default function Page() {
         {
             field: 'activity',
             headerName: 'Activity',
-            filterOperators: getGridStringOperators().filter((operator) => operator.value === 'contains' || operator.value === 'equals')
+            filterOperators: getGridStringOperators().filter((operator) => operator.value === 'contains' || operator.value === 'equals'),
+            minWidth: 200
         },
         {
             field: 'duration',
             headerName: 'Duration',
             filterable: false,
             type: "number",
-            valueFormatter: (value: number) => { return formatDuration(value) }
+            valueFormatter: (value: number) => { return formatDuration(value) },
+            minWidth: 250
         },
         {
             field: 'exerciseStartDate',
             headerName: 'Date Logged',
             type: "dateTime",
             valueFormatter: (value: string) => { return formatDate(value) },
-            filterOperators: getGridDateOperators().filter((operator) => operator.value === 'onOrAfter' || operator.value === 'onOrBefore')
+            filterOperators: getGridDateOperators().filter((operator) => operator.value === 'onOrAfter' || operator.value === 'onOrBefore'),
+            minWidth: 250
         }
     ]
 

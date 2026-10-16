@@ -29,8 +29,21 @@ export default function Page() {
         let filterValue = filterItem?.value;
         let fieldValue = filterItem?.field;
         if (filterItem?.field === "exerciseStartDate") {
-            filterValue = moment(filterValue).format();
-            fieldValue = filterItem.operator === "onOrAfter" ? "dateFrom" : "dateTo";
+            filterValue = moment(filterValue).utc().format();
+            switch (filterItem?.operator) {
+                case "onOrAfter": {
+                    fieldValue = "dateFrom";
+                    break;
+                }
+                case "onOrBefore": {
+                    fieldValue = "dateTo";
+                    break;
+                }
+                default: {
+                    fieldValue = "dateOn";
+                    break;
+                }
+            }
         }
         setFilterOptions({ field: fieldValue, value: filterValue });
     }, []);
@@ -116,7 +129,7 @@ export default function Page() {
             headerName: 'Date Logged',
             type: "dateTime",
             valueFormatter: (value: string) => { return formatDate(value) },
-            filterOperators: getGridDateOperators().filter((operator) => operator.value === 'onOrAfter' || operator.value === 'onOrBefore'),
+            filterOperators: getGridDateOperators().filter((operator) => operator.value === 'onOrAfter' || operator.value === 'onOrBefore' || operator.value === 'is'),
             flex: 1
         }
     ]

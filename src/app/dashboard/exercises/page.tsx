@@ -2,69 +2,58 @@
 
 import ExerciseService from "@/app/service/ExerciseService";
 import { useAuthStore } from "@/app/stores/UserStore";
-import { Exercise } from "@/app/types/Exercise";
 import Paper from "@mui/material/Paper";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { DataGrid, getGridDateOperators, getGridStringOperators, GridColDef, GridFilterModel, GridRowsProp } from '@mui/x-data-grid';
+import { useState, useMemo } from "react";
+import { DataGrid, getGridDateOperators, getGridStringOperators, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid';
 import moment from "moment";
-import { GridSortModel } from "@mui/x-data-grid";
+import { GridDataSource } from "@mui/x-data-grid";
 
 
 export default function Page() {
-    const [exercises, setExercises] = useState<Array<Exercise>>([]);
-    const [totalItems, setTotalItems] = useState<number>(0);
     const user = useAuthStore((state) => state.user);
-    const hydrated = useAuthStore((state) => state.hydrated);
     const userId = user?.id ?? '';
-    const requestedUserId = useRef<string>('');
-    const [paginationModel, setPaginationModel] = useState({
-        pageSize: 10,
-        page: 0,
-    });
-    const [sortModel, setSortModel] = useState<GridSortModel>([{ field: "exerciseStartDate", sort: 'desc' }]);
-    const [filterOptions, setFilterOptions] = useState({ field: '', value: '' });
+    const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
 
-    const onFilterChange = useCallback((filterModel: GridFilterModel) => {
-        const filterItem = filterModel?.items?.[0];
-        let filterValue = filterItem?.value;
-        let fieldValue = filterItem?.field;
-        if (filterItem?.field === "exerciseStartDate") {
-            filterValue = moment(filterValue).utc().format();
-            switch (filterItem?.operator) {
-                case "onOrAfter": {
-                    fieldValue = "dateFrom";
-                    break;
+    const dataSource: GridDataSource = useMemo(() => ({
+        getRows: async (params) => {
+            const urlParams = new URLSearchParams({
+                page: JSON.stringify(params.paginationModel?.page),
+                size: JSON.stringify(params.paginationModel?.pageSize),
+                sortProperty: params.sortModel?.[0]?.field ?? '',
+                direction: params.sortModel[0].sort ?? ''
+            });
+            if (params.filterModel) {
+                const filterItem = params.filterModel.items?.[0];
+                let filterValue = filterItem?.value;
+                let fieldValue = filterItem?.field;
+                if (filterItem?.field === "exerciseStartDate") {
+                    filterValue = moment(filterValue).utc().format();
+                    switch (filterItem?.operator) {
+                        case "onOrAfter": {
+                            fieldValue = "dateFrom";
+                            break;
+                        }
+                        case "onOrBefore": {
+                            fieldValue = "dateTo";
+                            break;
+                        }
+                        default: {
+                            fieldValue = "dateOn";
+                            break;
+                        }
+                    }
                 }
-                case "onOrBefore": {
-                    fieldValue = "dateTo";
-                    break;
-                }
-                default: {
-                    fieldValue = "dateOn";
-                    break;
-                }
+                urlParams.append(fieldValue, filterValue)
             }
-        }
-        setFilterOptions({ field: fieldValue, value: filterValue });
-    }, []);
-
-
-    const getExercises = (userId: string, currentPage: number, pageSize: number, sortProperty: string, direction: string, filterOptions: { field: string, value: string }) => {
-        ExerciseService.get(userId, currentPage, pageSize, sortProperty, direction, filterOptions).then((response) => {
-            const data = response.data;
-            setExercises(data.exercises);
-            setTotalItems(response.data.totalElements);
-        }).catch(() => {
-            userId = '';
-        });
-    }
-
-    useEffect(() => {
-        if (!hydrated || !userId || requestedUserId.current === userId || !sortModel[0]?.sort) {
-            return;
-        }
-        getExercises(userId, paginationModel.page, paginationModel.pageSize, sortModel[0].field, sortModel[0].sort, filterOptions);
-    }, [paginationModel, hydrated, userId, sortModel, filterOptions]);
+            const getRowsResponse = await ExerciseService.get(userId, urlParams.toString());
+            return {
+                rows: getRowsResponse.data.exercises,
+                rowCount: getRowsResponse.data.totalElements
+            };
+        },
+    }),
+        [userId]
+    );
 
     const formatDuration = (durationInMillis: number): string => {
         let secondsString = '';
@@ -96,19 +85,6 @@ export default function Page() {
         return moment(timestamp).format("MM-DD-YYYY hh:mm a");
     }
 
-    const convertToJavaScriptDate = (timestamp: string): Date => {
-        return moment(timestamp).toDate();
-    }
-
-    const rows: GridRowsProp = exercises.map((exercise) => {
-        return {
-            id: exercise.id,
-            activity: exercise.activity,
-            duration: exercise.duration,
-            exerciseStartDate: convertToJavaScriptDate(exercise.exerciseStartDate)
-        }
-    });
-
     const columns: GridColDef[] = [
         {
             field: 'activity',
@@ -137,19 +113,18 @@ export default function Page() {
     return (
         <Paper sx={{ display: 'flex', flexDirection: 'column' }}>
             <DataGrid
-                rows={rows}
-                rowCount={totalItems}
                 columns={columns}
-                paginationMode="server"
-                paginationModel={paginationModel}
-                onPaginationModelChange={setPaginationModel}
-                sortingMode="server"
-                sortModel={sortModel}
-                onSortModelChange={(sortModel) => setSortModel(sortModel)}
-                filterMode="server"
-                onFilterModelChange={onFilterChange}
+                dataSource={dataSource}
+                pagination
+                initialState={{
+                    pagination: { paginationModel: { pageSize: 10, page: 0 }, rowCount: 0 },
+                    sorting: { sortModel: [{ field: "exerciseStartDate", sort: 'desc' }] }
+                }}
                 autoHeight
                 pageSizeOptions={[10, 25, 50]}
+                checkboxSelection
+                rowSelectionModel={rowSelectionModel}
+                onRowSelectionModelChange={rowSelectionModel => setRowSelectionModel(rowSelectionModel)}
             />
         </Paper>
     )

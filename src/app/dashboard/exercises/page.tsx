@@ -90,7 +90,7 @@ export default function Page() {
             field: 'activity',
             headerName: 'Activity',
             filterOperators: getGridStringOperators().filter((operator) => operator.value === 'contains' || operator.value === 'equals'),
-            minWidth: 200
+            minWidth: 150
         },
         {
             field: 'duration',
@@ -98,7 +98,7 @@ export default function Page() {
             filterable: false,
             type: "number",
             valueFormatter: (value: number) => { return formatDuration(value) },
-            minWidth: 250
+            minWidth: 225
         },
         {
             field: 'exerciseStartDate',

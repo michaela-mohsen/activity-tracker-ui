@@ -9,7 +9,8 @@ import AuthService from "../service/AuthService";
 
 const tabs = [
     { label: "Dashboard", href: "/dashboard" },
-    { label: "Exercises", href: "/dashboard/exercises" }
+    { label: "Exercises", href: "/dashboard/exercises" },
+    { label: "Exercises V2", href: "/dashboard/exercises-v2" }
 ];
 
 export default function NavTabs() {

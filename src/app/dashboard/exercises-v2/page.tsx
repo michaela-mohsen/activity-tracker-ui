@@ -3,6 +3,7 @@
 import ExerciseService from "@/app/service/ExerciseService";
 import { useAuthStore } from "@/app/stores/UserStore";
 import { Exercise } from "@/app/types/Exercise";
+import { TableSortLabel } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -21,7 +22,7 @@ export default function Page() {
     const [totalElements, setTotalElements] = useState(0);
     const [page, setPage] = useState<number>(0);
     const [pageSize, setPageSize] = useState<number>(10);
-    const [sortModel, setSortModel] = useState<{ field: string, sort: string }>({ field: "exerciseStartDate", sort: 'desc' });
+    const [sortModel, setSortModel] = useState<{ field: string, sort: "asc" | "desc" }>({ field: "exerciseStartDate", sort: 'desc' });
     const [filterModel, setFilterModel] = useState<GridFilterModel>();
     const [loading, setLoading] = useState(false);
 
@@ -81,19 +82,19 @@ export default function Page() {
 
     const columns = [
         {
-            id: 1,
+            id: 'activity',
             field: 'activity',
             headerName: 'Activity',
             sortDirection: false as const
         },
         {
-            id: 2,
+            id: 'duration',
             field: 'duration',
             headerName: 'Duration',
             sortDirection: false as const
         },
         {
-            id: 3,
+            id: 'exerciseStartDate',
             field: 'exerciseStartDate',
             headerName: 'Date Logged',
             sortDirection: false as const
@@ -130,26 +131,41 @@ export default function Page() {
         return moment(timestamp).format("MM-DD-YYYY hh:mm a");
     }
 
+    const onSort = (columnId: string) => {
+        const isAscending = sortModel.field === columnId && sortModel.sort === 'asc';
+        setSortModel({ field: columnId, sort: isAscending ? 'desc' : 'asc' });
+    }
+
     return (
-        <TableContainer component={Paper} sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        {columns.map((column) => (
-                            <TableCell key={column.id} sortDirection={column.sortDirection}>{column.headerName}</TableCell>
-                        ))}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {exercises.map((exercise) => (
-                        <TableRow key={exercise.id}>
-                            <TableCell>{exercise.activity}</TableCell>
-                            <TableCell>{formatDuration(exercise.duration)}</TableCell>
-                            <TableCell>{formatDate(exercise.exerciseStartDate)}</TableCell>
+        <Paper sx={{ display: 'flex', flexDirection: 'column' }}>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            {columns.map((column) => (
+                                <TableCell key={column.id} sortDirection={column.sortDirection}>
+                                    <TableSortLabel
+                                        active={sortModel.field === column.id}
+                                        direction={sortModel.field === column.id ? sortModel.sort : "desc"}
+                                        onClick={() => onSort(column.id)}
+                                    >
+                                        {column.headerName}
+                                    </TableSortLabel>
+                                </TableCell>
+                            ))}
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                        {exercises.map((exercise) => (
+                            <TableRow key={exercise.id}>
+                                <TableCell>{exercise.activity}</TableCell>
+                                <TableCell>{formatDuration(exercise.duration)}</TableCell>
+                                <TableCell>{formatDate(exercise.exerciseStartDate)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Paper>
     );
 }

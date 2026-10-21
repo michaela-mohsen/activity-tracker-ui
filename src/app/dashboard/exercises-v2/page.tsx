@@ -3,7 +3,7 @@
 import ExerciseService from "@/app/service/ExerciseService";
 import { useAuthStore } from "@/app/stores/UserStore";
 import { Exercise } from "@/app/types/Exercise";
-import { TableSortLabel } from "@mui/material";
+import { TablePagination, TableSortLabel } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -13,7 +13,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { GridFilterModel } from "@mui/x-data-grid";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 export default function Page() {
     const user = useAuthStore((state) => state.user);
@@ -136,6 +136,13 @@ export default function Page() {
         setSortModel({ field: columnId, sort: isAscending ? 'desc' : 'asc' });
     }
 
+    const onPageChange = (event: unknown, page: number) => {
+        setPage(page);
+    }
+
+    const onRowsPerPageChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setPageSize(parseInt(event.target.value));
+    }
     return (
         <Paper sx={{ display: 'flex', flexDirection: 'column' }}>
             <TableContainer>
@@ -166,6 +173,7 @@ export default function Page() {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <TablePagination component='div' count={totalElements} onPageChange={onPageChange} page={page} onRowsPerPageChange={onRowsPerPageChange} rowsPerPage={pageSize} />
         </Paper>
     );
 }

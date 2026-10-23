@@ -38,17 +38,18 @@ instance.interceptors.response.use(
 			"/v1/auth/sign-out",
 		].some((path) => url.includes(path));
 
-		if (isAuthRequest || error.response?.status !== 401) {
-			return Promise.reject(error);
-		}
-		console.log("token expired, refreshing token");
-		originalConfig._retry = true;
-		try {
-			await refreshAuthToken();
-			return instance(originalConfig);
-		} catch (refreshError) {
-			useAuthStore.getState().clearAuth();
-			return Promise.reject(refreshError);
+		if (!isAuthRequest && error.response) {
+			if (error.response.status === 401 && !originalConfig._retry) {
+				console.log("token expired, refreshing token");
+				originalConfig._retry = true;
+				try {
+					await refreshAuthToken();
+					return instance(originalConfig);
+				} catch (refreshError) {
+					useAuthStore.getState().clearAuth();
+					return Promise.reject(refreshError);
+				}
+			}
 		}
 	},
 );

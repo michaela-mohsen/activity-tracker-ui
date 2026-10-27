@@ -43,7 +43,7 @@ export default function ExerciseRow(props: { row: Exercise, key: string }) {
     }
 
     return (
-        <TableRow key={props.key}>
+        <TableRow key={props.row.id}>
             <TableCell>{props.row.activity}</TableCell>
             <TableCell>{formatDuration(props.row.duration)}</TableCell>
             <TableCell>{formatDate(props.row.exerciseStartDate)}</TableCell>

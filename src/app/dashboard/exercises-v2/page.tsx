@@ -1,17 +1,18 @@
 "use client"
 
+import ExerciseRow from "@/app/components/ExerciseRow";
 import ExerciseService from "@/app/service/ExerciseService";
 import { useAuthStore } from "@/app/stores/UserStore";
 import { Exercise } from "@/app/types/Exercise";
-import { TablePagination, TableSortLabel } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
-import { GridFilterModel } from "@mui/x-data-grid";
+import TableSortLabel from "@mui/material/TableSortLabel";
 import moment from "moment";
 import { ChangeEvent, useEffect, useState } from "react";
 
@@ -23,7 +24,7 @@ export default function Page() {
     const [page, setPage] = useState<number>(0);
     const [pageSize, setPageSize] = useState<number>(10);
     const [sortModel, setSortModel] = useState<{ field: string, sort: "asc" | "desc" }>({ field: "exerciseStartDate", sort: 'desc' });
-    const [filterModel, setFilterModel] = useState<GridFilterModel>();
+    const [filterItem, setFilterItem] = useState<{ value: string, field: string, operator: string }>();
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -38,8 +39,7 @@ export default function Page() {
                     sortProperty: sortModel?.field ?? '',
                     direction: sortModel?.sort ?? ''
                 });
-                if (filterModel) {
-                    const filterItem = filterModel.items?.[0];
+                if (filterItem) {
                     let filterValue = filterItem?.value;
                     let fieldValue = filterItem?.field;
                     if (fieldValue === "exerciseStartDate") {
@@ -78,14 +78,15 @@ export default function Page() {
         return () => {
             active = false;
         }
-    }, [userId, page, pageSize, sortModel, filterModel]);
+    }, [userId, page, pageSize, sortModel, filterItem]);
 
     const columns = [
         {
             id: 'activity',
             field: 'activity',
             headerName: 'Activity',
-            sortDirection: false as const
+            sortDirection: false as const,
+            filterOperators: ["contains"]
         },
         {
             id: 'duration',
@@ -97,38 +98,13 @@ export default function Page() {
             id: 'exerciseStartDate',
             field: 'exerciseStartDate',
             headerName: 'Date Logged',
-            sortDirection: false as const
+            sortDirection: false as const,
+            filterOperators: ["onOrAfter", "onOrBefore", "is"]
         }
     ]
 
-    const formatDuration = (durationInMillis: number): string => {
-        let secondsString = '';
-        let minutesString = '';
-        let hoursString = '';
-        if (durationInMillis == null) {
-            return '';
-        }
-        const totalSeconds = Math.floor(durationInMillis / 1000);
-        const totalMinutes = Math.floor(totalSeconds / 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        const seconds = totalSeconds % 60;
-
-        if (hours > 0) {
-            hoursString = `${hours} hours`
-        }
-        if (minutes > 0) {
-            minutesString = `${minutes} minutes`
-        }
-        if (seconds > 0) {
-            secondsString = `${seconds} seconds`
-        }
-
-        return Array.of(hoursString, minutesString, secondsString).filter(Boolean).join(", ");
-    }
-
-    const formatDate = (timestamp: string): string => {
-        return moment(timestamp).format("MM-DD-YYYY hh:mm a");
+    const onFilter = (value: string, field: string, operator: string) => {
+        setFilterItem({ value, field, operator });
     }
 
     const onSort = (columnId: string) => {
@@ -143,6 +119,7 @@ export default function Page() {
     const onRowsPerPageChange = (event: ChangeEvent<HTMLInputElement>) => {
         setPageSize(parseInt(event.target.value));
     }
+
     return (
         <Paper sx={{ display: 'flex', flexDirection: 'column' }}>
             <TableContainer>
@@ -160,15 +137,12 @@ export default function Page() {
                                     </TableSortLabel>
                                 </TableCell>
                             ))}
+                            <TableCell></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {exercises.map((exercise) => (
-                            <TableRow key={exercise.id}>
-                                <TableCell>{exercise.activity}</TableCell>
-                                <TableCell>{formatDuration(exercise.duration)}</TableCell>
-                                <TableCell>{formatDate(exercise.exerciseStartDate)}</TableCell>
-                            </TableRow>
+                            <ExerciseRow row={exercise} key={exercise.id} />
                         ))}
                     </TableBody>
                 </Table>
